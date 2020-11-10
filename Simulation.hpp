@@ -2,19 +2,26 @@
 #define SIMULATION_H
 #include <vector>
 #include <string>
+#include <fstream>
+#include<random>
 class Simulation
 {
 public:
     Simulation(std::vector<std::string> files);
     void run();
     void loadBatchConfigFile(std::string fileName);
-    void generateDataSet();
+    void generateDataSets(std::uniform_int_distribution<int> dist);
     void generateReport();
     void runDetectionAlgorithm();
-    int generateRandomNumInRange(int from, int to);
+    int generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist);
+    std::string getItem(int number, int percent);
+    std::uniform_int_distribution<int> initializeRandomEngine(int min, int max);
 
 private:
     int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badItemsDetected;
+    unsigned int seed;
     std::vector<std::string> batchMetaInfo;
+    std::ifstream in;
+    std::default_random_engine myRandomEngine;
 };
 #endif

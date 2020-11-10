@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "deque": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "stack": "cpp",
+        "numeric": "cpp",
+        "random": "cpp"
+    }
+}
