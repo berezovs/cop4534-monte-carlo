@@ -15,10 +15,11 @@ public:
     void runDetectionAlgorithm();
     int generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist);
     std::string getItem(int number, int percent);
+    void calculateProbability();
     std::uniform_int_distribution<int> initializeRandomEngine(int min, int max);
 
 private:
-    int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badItemsDetected;
+    int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badBatchesDetected, badBatchesGenerated=0;
     unsigned int seed;
     std::vector<std::string> batchMetaInfo;
     std::ifstream in;

@@ -12,7 +12,8 @@ int main()
     files.push_back("t4.txt");
     Simulation *sim = new Simulation(files);
     sim->run();
-    int counter = 0;
+
+    //sim->runDetectionAlgorithm();
     
     delete sim;
     return 0;
