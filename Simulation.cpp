@@ -78,6 +78,7 @@ void Simulation::generateDataSets(std::uniform_int_distribution<int> dist)
         flag = false;
         //shuffle items in vector
         std::shuffle(items.begin(), items.end(), g);
+        std::shuffle(items.begin(), items.end(), g);
         this->writeBatchToFile(items, i+1);
         items.clear();
     }
@@ -112,7 +113,6 @@ void Simulation::runDetectionAlgorithm()
     std::random_device rd;
     std::mt19937 g(rd());
     std::vector<std::string> items;
-    //std::uniform_int_distribution<int> random = this->initializeRandomEngine(0, 1);
     for (int i = 0; i < this->numBatches; i++)
     {
         int sampleSize = this->itemsSampled;
@@ -129,6 +129,7 @@ void Simulation::runDetectionAlgorithm()
             }
 
         std::shuffle(items.begin(), items.end(), g);
+         std::shuffle(items.begin(), items.end(), g);
 
         for (int i = 0; i < sampleSize; i++)
         {
@@ -141,7 +142,7 @@ void Simulation::runDetectionAlgorithm()
         items.clear();
     }
     
-    std::cout << "Number of bad batches " << this->badBatchesDetected << "." << std::endl;
+    std::cout << "Number of bad batches detected: " << this->badBatchesDetected << "." << std::endl;
 }
 
 int Simulation::generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist)
