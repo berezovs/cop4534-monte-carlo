@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include<random>
+#include <algorithm>
 class Simulation
 {
 public:
@@ -11,12 +12,13 @@ public:
     void run();
     void loadBatchConfigFile(std::string fileName);
     void generateDataSets(std::uniform_int_distribution<int> dist);
-    void generateReport();
+    void writeBatchToFile(std::vector<std::string> &items, int fileNumber);
     void runDetectionAlgorithm();
     int generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist);
-    std::string getItem(int number, int percent);
     void calculateProbability();
     std::uniform_int_distribution<int> initializeRandomEngine(int min, int max);
+
+
 
 private:
     int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badBatchesDetected, badBatchesGenerated=0;

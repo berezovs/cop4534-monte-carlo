@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <algorithm>
 Simulation::Simulation(std::vector<std::string> files)
 {
     this->batchMetaInfo = files;
@@ -37,58 +38,81 @@ void Simulation::loadBatchConfigFile(std::string fileName)
     }
     in.close();
 }
+
 void Simulation::generateDataSets(std::uniform_int_distribution<int> dist)
 {
 
-    std::uniform_int_distribution<int> random = this->initializeRandomEngine(0,1);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    int numBadBatches = ((double)this->badBatchesPercent / (double)100) * (double)this->numBatches;
+    std::vector<std::string> items;
+    bool flag = false;
 
+    std::cout << "Generating data sets:" << std::endl;
     for (int i = 0; i < this->numBatches; i++)
     {
-        std::ofstream out, cleaner;
-        std::string filename;
 
-        filename = "ds";
-        filename += std::to_string(i + 1);
-        filename += ".txt";
-
-        cleaner.open(filename, std::ofstream::out | std::ofstream::trunc);
-        out.open(filename, std::ios_base::app);
-
-        if (this->generateRandomNumberInRange(dist) < this->badBatchesPercent)
+        //push items to vector
+        int numBadItems = 0;
+        for (int j = 0; j < this->numItemsInBatch; j++)
         {
-
-            this->badBatchesGenerated++;
-            int numBadItemsInBatchToWrite = (this->numItemsInBatch / 100) * this->badItemsPercent;
-            for (int k = 0; k < this->numItemsInBatch; k++)
+            if (this->generateRandomNumberInRange(dist) < this->badItemsPercent && numBadBatches > 0)
             {
-                if (numBadItemsInBatchToWrite > 0 && generateRandomNumberInRange(random)!=0){
-                    out << "b\n";
-                    numBadItemsInBatchToWrite--;
-                }
-                else
-                    out << "g\n";
+                items.push_back("b");
+                numBadItems++;
+                if (!flag)
+                    this->badBatchesGenerated++;
+                flag = true;
             }
-            //std::cout << "Bad Batches generated: " << filename << std::endl;
-        }
-        else
-        {
-            for (int k = 0; k < this->numItemsInBatch; k++)
+            else
             {
-                out << "g\n";
+                items.push_back("g");
             }
         }
-        //std::cout << "Countined b.. "  << filename << std::endl;
-        out.close();
+
+        numBadBatches--;
+        //log bad batch
+        if (flag)
+            std::cout << "Create bad set batch #" << i << " totalbad = " << numBadItems << " total = " << this->numBatches << " pct " << this->badItemsPercent << std::endl;
+        //reset bad batch flag
+        flag = false;
+        //shuffle items in vector
+        std::shuffle(items.begin(), items.end(), g);
+        this->writeBatchToFile(items, i+1);
+        items.clear();
     }
-    std::cout << "Bad Batches percent: " << this->badBatchesPercent << std::endl;
-    std::cout << "Number of bad batches generated: " << this->badBatchesGenerated << std::endl;
+    std::cout << "Bad batches generated: " << this->badBatchesGenerated << std::endl;
 }
-void Simulation::generateReport()
+
+void Simulation::writeBatchToFile(std::vector<std::string> &items, int fileNumber)
 {
+    std::ofstream out, cleaner;
+    std::string filename;
+
+    filename = "ds";
+    filename += std::to_string(fileNumber);
+    filename += ".txt";
+
+    cleaner.open(filename, std::ofstream::out | std::ofstream::trunc);
+    out.open(filename, std::ios_base::app);
+
+    if (out.is_open())
+    {
+        for (std::string item : items)
+        {
+
+            out << item;
+            out << "\n";
+        }
+    }
 }
+
 void Simulation::runDetectionAlgorithm()
 {
-    std::uniform_int_distribution<int> random = this->initializeRandomEngine(0,1);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::vector<std::string> items;
+    //std::uniform_int_distribution<int> random = this->initializeRandomEngine(0, 1);
     for (int i = 0; i < this->numBatches; i++)
     {
         int sampleSize = this->itemsSampled;
@@ -99,23 +123,24 @@ void Simulation::runDetectionAlgorithm()
         filename += ".txt";
         in.open(filename);
         if (in.is_open())
-
-        {
-            while (getline(in, item) && sampleSize > 0)
+            while (getline(in, item))
             {
-                
-                
-                if (item == "b")
-                {
-                    this->badBatchesDetected++;
-                    //std::cout << "Bad batch " << filename << "." << std::endl;
-                    break;
-                }
-                sampleSize--;
-                
+                items.push_back(item);
+            }
+
+        std::shuffle(items.begin(), items.end(), g);
+
+        for (int i = 0; i < sampleSize; i++)
+        {
+            if (items.at(i) == "b")
+            {
+                this->badBatchesDetected++;
+                break;
             }
         }
+        items.clear();
     }
+    
     std::cout << "Number of bad batches " << this->badBatchesDetected << "." << std::endl;
 }
 
@@ -124,16 +149,6 @@ int Simulation::generateRandomNumberInRange(std::uniform_int_distribution<int> m
 
     int number = myUnifIntDist(myRandomEngine);
     return number;
-}
-
-std::string Simulation::getItem(int number, int percent)
-{
-    if (number <= (percent - 1))
-    {
-        std::cout << "b.. " << std::endl;
-        return "b";
-    }
-    return "g";
 }
 
 std::uniform_int_distribution<int> Simulation::initializeRandomEngine(int min, int max)
@@ -148,8 +163,7 @@ std::uniform_int_distribution<int> Simulation::initializeRandomEngine(int min, i
 
 void Simulation::calculateProbability()
 {
-    std::string returnString;
-    double base = 1 - (double)1 / (double)this->badBatchesPercent;
+    double base = 1.0-((double)this->badItemsPercent/(double)100);
     double probabilityFailure = std::pow(base, this->itemsSampled);
     double percentDetected = ((double)(this->badBatchesDetected) / (double)(this->badBatchesGenerated)) * (double)100;
 
