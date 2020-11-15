@@ -10,6 +10,7 @@ class Simulation
 public:
     Simulation(std::vector<std::string> files);
     void run();
+    void printSimulationDetails();
     void loadBatchConfigFile(std::string fileName);
     void generateDataSets(std::uniform_int_distribution<int> dist);
     void writeBatchToFile(std::vector<std::string> &items, int fileNumber);
@@ -21,7 +22,7 @@ public:
 
 
 private:
-    int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badBatchesDetected, badBatchesGenerated=0;
+    int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badBatchesDetected, badBatchesGenerated, simNumber;
     unsigned int seed;
     std::vector<std::string> batchMetaInfo;
     std::ifstream in;

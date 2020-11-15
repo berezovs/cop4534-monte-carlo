@@ -12,11 +12,14 @@ Simulation::Simulation(std::vector<std::string> files)
 
 void Simulation::run()
 {
-    std::uniform_int_distribution<int> dist = this->initializeRandomEngine(0, 99);
+    int MIN = 0, MAX = 99;
+
+    std::uniform_int_distribution<int> dist = this->initializeRandomEngine(MIN, MAX);
     for (std::string file : batchMetaInfo)
     {
-        std::cout << file << std::endl;
+        this->simNumber++;
         this->loadBatchConfigFile(file);
+        this->printSimulationDetails();
         this->generateDataSets(dist);
         this->runDetectionAlgorithm();
         this->calculateProbability();
@@ -24,6 +27,17 @@ void Simulation::run()
         this->badBatchesGenerated = 0;
     }
 }
+
+void Simulation::printSimulationDetails()
+{
+    std::cout << "\nSimulation: " << this->simNumber << std::endl;
+    std::cout << "\tNumber of batches of items: " << this->numBatches << std::endl;
+    std::cout << "\tNumber of items in each batch : " << this->numItemsInBatch << std::endl;
+    std::cout << "\tPercentage of batches containing bad items: " << this->badBatchesPercent << std::endl;
+    std::cout << "\tPercentage of items that are bad in a bad set: " << this->badItemsPercent << std::endl;
+    std::cout << "\tItems sampled from each set: " << this->itemsSampled << std::endl;
+}
+
 void Simulation::loadBatchConfigFile(std::string fileName)
 {
     this->in.open(fileName);
@@ -42,13 +56,16 @@ void Simulation::loadBatchConfigFile(std::string fileName)
 void Simulation::generateDataSets(std::uniform_int_distribution<int> dist)
 {
 
+    //setup random engine
     std::random_device rd;
     std::mt19937 g(rd());
+
     int numBadBatches = ((double)this->badBatchesPercent / (double)100) * (double)this->numBatches;
     std::vector<std::string> items;
     bool flag = false;
 
-    std::cout << "Generating data sets:" << std::endl;
+    std::cout << "\nGenerating data sets:\n"
+              << std::endl;
     for (int i = 0; i < this->numBatches; i++)
     {
 
@@ -73,16 +90,16 @@ void Simulation::generateDataSets(std::uniform_int_distribution<int> dist)
         numBadBatches--;
         //log bad batch
         if (flag)
-            std::cout << "Create bad set batch #" << i << " totalbad = " << numBadItems << " total = " << this->numBatches << " pct " << this->badItemsPercent << std::endl;
+            std::cout << "\tCreate bad set batch #" << i << " totalbad = " << numBadItems << " total = " << this->numBatches << " pct " << this->badItemsPercent << std::endl;
         //reset bad batch flag
         flag = false;
-        //shuffle items in vector
+        //shuffle items in vector twice
         std::shuffle(items.begin(), items.end(), g);
         std::shuffle(items.begin(), items.end(), g);
-        this->writeBatchToFile(items, i+1);
+        this->writeBatchToFile(items, i + 1);
         items.clear();
     }
-    std::cout << "Bad batches generated: " << this->badBatchesGenerated << std::endl;
+    std::cout << "\tBad batches generated: " << this->badBatchesGenerated << std::endl;
 }
 
 void Simulation::writeBatchToFile(std::vector<std::string> &items, int fileNumber)
@@ -94,7 +111,9 @@ void Simulation::writeBatchToFile(std::vector<std::string> &items, int fileNumbe
     filename += std::to_string(fileNumber);
     filename += ".txt";
 
+    //erase the contents of the file
     cleaner.open(filename, std::ofstream::out | std::ofstream::trunc);
+    //open the file and set write mode to append
     out.open(filename, std::ios_base::app);
 
     if (out.is_open())
@@ -113,6 +132,8 @@ void Simulation::runDetectionAlgorithm()
     std::random_device rd;
     std::mt19937 g(rd());
     std::vector<std::string> items;
+
+    std::cout << "\nAnalyzing data sets..." << std::endl;
     for (int i = 0; i < this->numBatches; i++)
     {
         int sampleSize = this->itemsSampled;
@@ -129,25 +150,24 @@ void Simulation::runDetectionAlgorithm()
             }
 
         std::shuffle(items.begin(), items.end(), g);
-         std::shuffle(items.begin(), items.end(), g);
+        std::shuffle(items.begin(), items.end(), g);
 
-        for (int i = 0; i < sampleSize; i++)
+        for (int j = 0; j < sampleSize; j++)
         {
-            if (items.at(i) == "b")
+            if (items.at(j) == "b")
             {
                 this->badBatchesDetected++;
+                std::cout << "\tbatch #" << i << " is bad" << std::endl;
                 break;
             }
         }
+        //empty vector
         items.clear();
     }
-    
-    std::cout << "Number of bad batches detected: " << this->badBatchesDetected << "." << std::endl;
 }
 
 int Simulation::generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist)
 {
-
     int number = myUnifIntDist(myRandomEngine);
     return number;
 }
@@ -164,15 +184,12 @@ std::uniform_int_distribution<int> Simulation::initializeRandomEngine(int min, i
 
 void Simulation::calculateProbability()
 {
-    double base = 1.0-((double)this->badItemsPercent/(double)100);
+    double base = 1.0 - ((double)this->badItemsPercent / (double)100);
     double probabilityFailure = std::pow(base, this->itemsSampled);
     double percentDetected = ((double)(this->badBatchesDetected) / (double)(this->badBatchesGenerated)) * (double)100;
 
-    std::cout << "Base = " << base;
-
+    std::cout << "\nBase = " << base;
     std::cout << " exponent = " << this->itemsSampled << std::endl;
-
     std::cout << "P(failure to detect bad batch) = " << probabilityFailure << " %" << std::endl;
-
     std::cout << "Percentage of bad batches actually detected =  " << percentDetected << " %" << std::endl;
 }
