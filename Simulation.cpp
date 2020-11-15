@@ -1,3 +1,9 @@
+/***************************************************************
+  Student Name:Serghei Berezovschi
+  File Name: Simulation.cpp
+  Assignment number:Project 4-DS&AII
+ 
+***************************************************************/
 #include "Simulation.hpp"
 #include <string>
 #include <vector>
@@ -176,17 +182,17 @@ void Simulation::runDetectionAlgorithm()
 }
 
 //generates a random number in the range  
-int Simulation::generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist)
+int Simulation::generateRandomNumberInRange(std::uniform_int_distribution<int> uniformIntDist)
 {
-    int number = myUnifIntDist(myRandomEngine);
+    int number = uniformIntDist(myRandomEngine);
     return number;
 }
 
 //initializes random engine
 std::uniform_int_distribution<int> Simulation::initializeRandomEngine(int min, int max)
 {
-    std::uniform_int_distribution<int> myUnifIntDist(min, max);
-    return myUnifIntDist;
+    std::uniform_int_distribution<int> uniformIntDist(min, max);
+    return uniformIntDist;
 }
 
 void Simulation::calculateAndShowAnalytics()

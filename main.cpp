@@ -1,3 +1,9 @@
+/***************************************************************
+  Student Name:Serghei Berezovschi
+  File Name: main.cpp
+  Assignment number:Project 4-DS&AII
+ 
+***************************************************************/
 #include "Simulation.hpp"
 #include <vector>
 #include <string>
