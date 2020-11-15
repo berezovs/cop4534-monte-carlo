@@ -6,14 +6,17 @@
 int main()
 {
     std::vector<std::string> files;
+    //push filenames in vector
     files.push_back("t1.txt");
     files.push_back("t2.txt");
     files.push_back("t3.txt");
     files.push_back("t4.txt");
+
     Simulation *sim = new Simulation(files);
+
+    //run simulation
     sim->run();
 
-    //sim->runDetectionAlgorithm();
     
     delete sim;
     return 0;
