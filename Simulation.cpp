@@ -22,12 +22,15 @@ void Simulation::run()
         this->printSimulationDetails();
         this->generateDataSets(dist);
         this->runDetectionAlgorithm();
-        this->calculateProbability();
+        this->calculateAndShowAnalytics();
+        //reset variables specific to individual simulations
         this->badBatchesDetected = 0;
         this->badBatchesGenerated = 0;
     }
 }
 
+
+//prints simulation details
 void Simulation::printSimulationDetails()
 {
     std::cout << "\nSimulation: " << this->simNumber << std::endl;
@@ -38,6 +41,7 @@ void Simulation::printSimulationDetails()
     std::cout << "\tItems sampled from each set: " << this->itemsSampled << std::endl;
 }
 
+//loads .txt file containing simulation details
 void Simulation::loadBatchConfigFile(std::string fileName)
 {
     this->in.open(fileName);
@@ -53,6 +57,7 @@ void Simulation::loadBatchConfigFile(std::string fileName)
     in.close();
 }
 
+//generates data sets as specified by configuration file
 void Simulation::generateDataSets(std::uniform_int_distribution<int> dist)
 {
 
@@ -93,15 +98,17 @@ void Simulation::generateDataSets(std::uniform_int_distribution<int> dist)
             std::cout << "\tCreate bad set batch #" << i << " totalbad = " << numBadItems << " total = " << this->numBatches << " pct " << this->badItemsPercent << std::endl;
         //reset bad batch flag
         flag = false;
-        //shuffle items in vector twice
+        //shuffle items in vector 
         std::shuffle(items.begin(), items.end(), g);
-        std::shuffle(items.begin(), items.end(), g);
+        //writes batch to file
         this->writeBatchToFile(items, i + 1);
         items.clear();
     }
     std::cout << "\tBad batches generated: " << this->badBatchesGenerated << std::endl;
 }
 
+
+//writes batch to file
 void Simulation::writeBatchToFile(std::vector<std::string> &items, int fileNumber)
 {
     std::ofstream out, cleaner;
@@ -127,6 +134,8 @@ void Simulation::writeBatchToFile(std::vector<std::string> &items, int fileNumbe
     }
 }
 
+
+//uses montecarlo algorithm approach to detect bad batches
 void Simulation::runDetectionAlgorithm()
 {
     std::random_device rd;
@@ -166,23 +175,21 @@ void Simulation::runDetectionAlgorithm()
     }
 }
 
+//generates a random number in the range  
 int Simulation::generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist)
 {
     int number = myUnifIntDist(myRandomEngine);
     return number;
 }
 
+//initializes random engine
 std::uniform_int_distribution<int> Simulation::initializeRandomEngine(int min, int max)
 {
-    std::default_random_engine myRandomDevice;
-    seed = myRandomDevice();
-
-    myRandomEngine.seed(seed);
     std::uniform_int_distribution<int> myUnifIntDist(min, max);
     return myUnifIntDist;
 }
 
-void Simulation::calculateProbability()
+void Simulation::calculateAndShowAnalytics()
 {
     double base = 1.0 - ((double)this->badItemsPercent / (double)100);
     double probabilityFailure = std::pow(base, this->itemsSampled);

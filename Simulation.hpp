@@ -16,14 +16,13 @@ public:
     void writeBatchToFile(std::vector<std::string> &items, int fileNumber);
     void runDetectionAlgorithm();
     int generateRandomNumberInRange(std::uniform_int_distribution<int> myUnifIntDist);
-    void calculateProbability();
+    void calculateAndShowAnalytics();
     std::uniform_int_distribution<int> initializeRandomEngine(int min, int max);
 
 
 
 private:
     int numBatches, numItemsInBatch, badItemsPercent, badBatchesPercent, itemsSampled, badBatchesDetected, badBatchesGenerated, simNumber;
-    unsigned int seed;
     std::vector<std::string> batchMetaInfo;
     std::ifstream in;
     std::default_random_engine myRandomEngine;
